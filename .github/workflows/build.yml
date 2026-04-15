@@ -17,17 +17,11 @@ jobs:
     - uses: microsoft/setup-msbuild@v2
 
     - name: Build
+      shell: cmd
       run: |
-        $clPath = & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -find "VC\Tools\MSVC\*\bin\Hostx64\x64\cl.exe" | Sort-Object -Descending | Select-Object -First 1
-        Write-Host "cl.exe: $clPath"
-        $vcDir = Split-Path (Split-Path (Split-Path (Split-Path $clPath)))
-        $env:PATH = "$(Split-Path $clPath);$env:PATH"
-        $env:INCLUDE = "$vcDir\include;${env:ProgramFiles(x86)}\Windows Kits\10\Include\$(Get-ChildItem '${env:ProgramFiles(x86)}\Windows Kits\10\Include' -Dir | Where-Object {$_.Name -match '^\d'} | Sort-Object Name -Desc | Select-Object -First 1 -Exp Name)\um;${env:ProgramFiles(x86)}\Windows Kits\10\Include\$(Get-ChildItem '${env:ProgramFiles(x86)}\Windows Kits\10\Include' -Dir | Where-Object {$_.Name -match '^\d'} | Sort-Object Name -Desc | Select-Object -First 1 -Exp Name)\shared;${env:ProgramFiles(x86)}\Windows Kits\10\Include\$(Get-ChildItem '${env:ProgramFiles(x86)}\Windows Kits\10\Include' -Dir | Where-Object {$_.Name -match '^\d'} | Sort-Object Name -Desc | Select-Object -First 1 -Exp Name)\ucrt"
-        $env:LIB = "$vcDir\lib\x64;${env:ProgramFiles(x86)}\Windows Kits\10\Lib\$(Get-ChildItem '${env:ProgramFiles(x86)}\Windows Kits\10\Lib' -Dir | Where-Object {$_.Name -match '^\d'} | Sort-Object Name -Desc | Select-Object -First 1 -Exp Name)\um\x64;${env:ProgramFiles(x86)}\Windows Kits\10\Lib\$(Get-ChildItem '${env:ProgramFiles(x86)}\Windows Kits\10\Lib' -Dir | Where-Object {$_.Name -match '^\d'} | Sort-Object Name -Desc | Select-Object -First 1 -Exp Name)\ucrt\x64"
-
-        mkdir build -Force | Out-Null
+        call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
+        mkdir build
         cl /EHsc /O2 /DNDEBUG /Fe:build\ddc_test.exe ddc_test.cpp /link dxva2.lib user32.lib
-      shell: pwsh
 
     - uses: actions/upload-artifact@v4
       with:
