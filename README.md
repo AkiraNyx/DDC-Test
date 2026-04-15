@@ -33,7 +33,7 @@ ddc_test --help             Show help
 
 ========================================
   DDC/CI Monitor Test Tool
-  Author: AkiraNyx  |  Version: 1.0.0
+  Author: AkiraNyx  |  Version: 1.1.0
 ========================================
 
 --- Monitor #1 ---
