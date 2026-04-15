@@ -1,0 +1,64 @@
+name: Build & Release
+
+on:
+  push:
+    branches: [ main ]
+    tags: [ 'v*' ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - uses: microsoft/setup-msbuild@v2
+
+    - name: Build
+      run: |
+        $clPath = & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -find "VC\Tools\MSVC\*\bin\Hostx64\x64\cl.exe" | Sort-Object -Descending | Select-Object -First 1
+        Write-Host "cl.exe: $clPath"
+        $vcDir = Split-Path (Split-Path (Split-Path (Split-Path $clPath)))
+        $env:PATH = "$(Split-Path $clPath);$env:PATH"
+        $env:INCLUDE = "$vcDir\include;${env:ProgramFiles(x86)}\Windows Kits\10\Include\$(Get-ChildItem '${env:ProgramFiles(x86)}\Windows Kits\10\Include' -Dir | Where-Object {$_.Name -match '^\d'} | Sort-Object Name -Desc | Select-Object -First 1 -Exp Name)\um;${env:ProgramFiles(x86)}\Windows Kits\10\Include\$(Get-ChildItem '${env:ProgramFiles(x86)}\Windows Kits\10\Include' -Dir | Where-Object {$_.Name -match '^\d'} | Sort-Object Name -Desc | Select-Object -First 1 -Exp Name)\shared;${env:ProgramFiles(x86)}\Windows Kits\10\Include\$(Get-ChildItem '${env:ProgramFiles(x86)}\Windows Kits\10\Include' -Dir | Where-Object {$_.Name -match '^\d'} | Sort-Object Name -Desc | Select-Object -First 1 -Exp Name)\ucrt"
+        $env:LIB = "$vcDir\lib\x64;${env:ProgramFiles(x86)}\Windows Kits\10\Lib\$(Get-ChildItem '${env:ProgramFiles(x86)}\Windows Kits\10\Lib' -Dir | Where-Object {$_.Name -match '^\d'} | Sort-Object Name -Desc | Select-Object -First 1 -Exp Name)\um\x64;${env:ProgramFiles(x86)}\Windows Kits\10\Lib\$(Get-ChildItem '${env:ProgramFiles(x86)}\Windows Kits\10\Lib' -Dir | Where-Object {$_.Name -match '^\d'} | Sort-Object Name -Desc | Select-Object -First 1 -Exp Name)\ucrt\x64"
+
+        mkdir build -Force | Out-Null
+        cl /EHsc /O2 /DNDEBUG /Fe:build\ddc_test.exe ddc_test.cpp /link dxva2.lib user32.lib
+      shell: pwsh
+
+    - uses: actions/upload-artifact@v4
+      with:
+        name: DDC-Test-x64
+        path: build/ddc_test.exe
+
+  release:
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+    - uses: actions/download-artifact@v4
+      with:
+        name: DDC-Test-x64
+        path: release-files
+
+    - uses: softprops/action-gh-release@v2
+      with:
+        name: DDC-Test ${{ github.ref_name }}
+        files: release-files/ddc_test.exe
+        body: |
+          ## DDC-Test ${{ github.ref_name }}
+
+          DDC/CI monitor brightness test tool.
+
+          ### Usage
+          ```
+          ddc_test              Enumerate monitors and show DDC/CI info
+          ddc_test --get        Show current brightness
+          ddc_test --set <N>    Set brightness to N% (0-100)
+          ```
