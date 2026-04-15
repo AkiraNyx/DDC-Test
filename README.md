@@ -1,6 +1,10 @@
 # DDC-Test
 
+[**中文版本 (Chinese README)**](README_CN.md)
+
 A lightweight command-line tool to test DDC/CI availability and control monitor brightness/contrast via the DDC/CI protocol.
+
+**Author:** [AkiraNyx](https://github.com/AkiraNyx)
 
 ## Features
 
@@ -9,20 +13,28 @@ A lightweight command-line tool to test DDC/CI availability and control monitor 
 - Set brightness for all DDC/CI-capable monitors
 - Show VCP feature details (low-level DDC/CI)
 - Automatic brightness range mapping (DDC/CI raw values <-> 0-100%)
+- Bilingual output: English (default) and Simplified Chinese (`--lang cn`)
 
 ## Usage
 
 ```
-ddc_test              Enumerate monitors and show DDC/CI info
-ddc_test --get        Show current brightness of all monitors
-ddc_test --set <N>    Set all monitors brightness to N% (0-100)
-ddc_test --help       Show help
+ddc_test                    Enumerate monitors and show DDC/CI info
+ddc_test --get              Show current brightness of all monitors
+ddc_test --set <N>          Set all monitors brightness to N% (0-100)
+ddc_test --lang cn          Use Simplified Chinese output
+ddc_test --lang cn --set 50 Combine language with other commands
+ddc_test --help             Show help
 ```
 
 ### Examples
 
 ```
 > ddc_test
+
+========================================
+  DDC/CI Monitor Test Tool
+  Author: AkiraNyx  |  Version: 1.0.0
+========================================
 
 --- Monitor #1 ---
   Device: \\.\DISPLAY1
@@ -46,17 +58,15 @@ Setting all DDC/CI monitors to 50%...
 Done, processed 1 monitor(s)
 ```
 
-## Build
+## Download
 
-### Visual Studio / MSVC
+Prebuilt binaries are available in [Releases](../../releases).
+
+## Build
 
 ```cmd
 cl /EHsc /O2 ddc_test.cpp /link dxva2.lib user32.lib
 ```
-
-### GitHub Actions
-
-Prebuilt binaries are available in [Releases](../../releases).
 
 ## Requirements
 
